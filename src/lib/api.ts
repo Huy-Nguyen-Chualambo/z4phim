@@ -1,6 +1,6 @@
 import { MovieDetailResponse, MovieListResponse } from "./types";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://phim.nguonc.com/api";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 export async function getMovies(page: number = 1): Promise<MovieListResponse> {
     const res = await fetch(`${API_BASE_URL}/films/phim-moi-cap-nhat?page=${page}`, {
