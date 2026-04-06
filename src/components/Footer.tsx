@@ -31,7 +31,7 @@ export default function Footer() {
                     </div>
                 </div>
                 <div style={{ marginTop: "3rem", paddingTop: "2rem", borderTop: "1px solid var(--card-border)", textAlign: "center", color: "var(--text-muted)", fontSize: "0.85rem" }}>
-                    &copy; {new Date().getFullYear()} Z4PHIM. All rights reserved. Built with Next.js.
+                    &copy; {new Date().getFullYear()} Z4PHIM. All rights reserved.
                 </div>
             </div>
         </footer>
