@@ -78,3 +78,94 @@ export interface MovieDetailResponse {
   status: string;
   movie: MovieDetail;
 }
+// Phim API (KKPhim) Types
+export interface PhimApiPagination {
+  totalItems: number;
+  totalItemsPerPage: number;
+  currentPage: number;
+  totalPages: number;
+}
+
+export interface PhimApiMovieListItem {
+  _id: string;
+  name: string;
+  slug: string;
+  origin_name: string;
+  poster_url: string;
+  thumb_url: string;
+  year: number;
+  modified: {
+    time: string;
+  };
+}
+
+export interface PhimApiMovieListResponse {
+  status: boolean;
+  items: PhimApiMovieListItem[];
+  pagination: PhimApiPagination;
+}
+
+export interface PhimApiMovieDetail {
+  _id: string;
+  name: string;
+  slug: string;
+  origin_name: string;
+  content: string;
+  type: string;
+  status: string;
+  poster_url: string;
+  thumb_url: string;
+  trailer_url: string;
+  time: string;
+  episode_current: string;
+  episode_total: string;
+  quality: string;
+  lang: string;
+  year: number;
+  actor: string[];
+  director: string[];
+  category: {
+    id: string;
+    name: string;
+    slug: string;
+  }[];
+  country: {
+    id: string;
+    name: string;
+    slug: string;
+  }[];
+  modified: {
+    time: string;
+  };
+}
+
+export interface PhimApiEpisodeItem {
+  name: string;
+  slug: string;
+  filename: string;
+  link_embed: string;
+  link_m3u8: string;
+}
+
+export interface PhimApiEpisodeServer {
+  server_name: string;
+  server_data: PhimApiEpisodeItem[];
+}
+
+export interface PhimApiMovieDetailResponse {
+  status: boolean;
+  movie: PhimApiMovieDetail;
+  episodes: PhimApiEpisodeServer[];
+}
+
+export interface PhimApiCategoryItem {
+  _id: string;
+  name: string;
+  slug: string;
+}
+
+export interface PhimApiCountryItem {
+  _id: string;
+  name: string;
+  slug: string;
+}
