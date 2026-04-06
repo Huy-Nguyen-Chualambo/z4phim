@@ -1,16 +1,28 @@
 import { getMovieDetail } from "@/lib/api";
+import { getPhimApiMovieDetail, mapPhimApiToCommonDetail } from "@/lib/phimapi";
 import { Metadata } from "next";
 import Link from "next/link";
+import { MovieDetailResponse } from "@/lib/types";
 
 interface Props {
     params: Promise<{ slug: string }>;
-    searchParams: Promise<{ server?: string; episode?: string }>;
+    searchParams: Promise<{ server?: string; episode?: string; source?: string }>;
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
     const { slug } = await params;
     try {
-        const data = await getMovieDetail(slug);
+        // Try fetching from both to get the best metadata
+        const results = await Promise.allSettled([
+            getMovieDetail(slug),
+            getPhimApiMovieDetail(slug).then(mapPhimApiToCommonDetail)
+        ]);
+
+        const data = results[0].status === 'fulfilled' ? results[0].value :
+            results[1].status === 'fulfilled' ? results[1].value : null;
+
+        if (!data) throw new Error("Not found");
+
         return {
             title: `${data.movie.name} - Z4PHIM`,
             description: data.movie.description.substring(0, 160),
@@ -22,18 +34,45 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function MovieDetailPage({ params, searchParams }: Props) {
     const { slug } = await params;
-    const { server: serverIdx = "0", episode: epSlug } = await searchParams;
+    const { server: serverIdx = "0", episode: epSlug, source: sourceQuery } = await searchParams;
 
     try {
-        const data = await getMovieDetail(slug);
+        // Fetch from both sources
+        const results = await Promise.allSettled([
+            getMovieDetail(slug),
+            getPhimApiMovieDetail(slug).then(mapPhimApiToCommonDetail)
+        ]);
+
+        const source1Data = results[0].status === 'fulfilled' ? results[0].value : null;
+        const source2Data = results[1].status === 'fulfilled' ? results[1].value : null;
+
+        if (!source1Data && !source2Data) {
+            return (
+                <div className="container" style={{ padding: "4rem 0", textAlign: "center" }}>
+                    <h2 style={{ color: "#ff4444" }}>Phim không tồn tại hoặc đã bị gỡ bỏ</h2>
+                    <Link href="/" style={{ color: "var(--primary)", marginTop: "1rem", display: "inline-block" }}>Về trang chủ</Link>
+                </div>
+            );
+        }
+
+        // Determine current source: 
+        // If sourceQuery is "2" and Source 2 is available, use Source 2.
+        // Otherwise, if Source 1 is available, use Source 1.
+        // Else use Source 2.
+        const currentSourceNum = (sourceQuery === "2" && source2Data) ? 2 : (source1Data ? 1 : 2);
+        const data = currentSourceNum === 1 ? source1Data! : source2Data!;
         const movie = data.movie;
-        if (!movie) throw new Error("Movie data not found");
 
         const servers = movie.episodes || [];
         if (servers.length === 0) {
             return (
-                <div className="container" style={{ padding: "4rem 0", textAlign: "center" }}>
-                    <h2>Phim hiện chưa có tập nào.</h2>
+                <div className="container" style={{ padding: "4rem 2rem", textAlign: "center" }}>
+                    <h2>Phim hiện chưa có tập nào trên nguồn này.</h2>
+                    {source1Data && source2Data && (
+                        <p style={{ marginTop: "1rem" }}>
+                            Bạn có thể thử chuyển qua <Link href={`/phim/${slug}?source=${currentSourceNum === 1 ? 2 : 1}`} style={{ color: "var(--primary)" }}>Nguồn {currentSourceNum === 1 ? 2 : 1}</Link>
+                        </p>
+                    )}
                     <Link href="/" style={{ color: "var(--primary)", marginTop: "1rem", display: "inline-block" }}>Về trang chủ</Link>
                 </div>
             );
@@ -106,16 +145,42 @@ export default async function MovieDetailPage({ params, searchParams }: Props) {
                         </div>
                     </div>
 
-                    <div className="detail-sidebar">
+                    <div className="detail-sidebar" style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+                        {/* Source Chooser */}
+                        {(source1Data && source2Data) && (
+                            <div className="glass" style={{ padding: "1.5rem" }}>
+                                <h3 style={{ marginBottom: "1rem", fontSize: "1.1rem" }}>Chọn server</h3>
+                                <div className="flex gap-2">
+                                    <Link
+                                        href={`/phim/${slug}?source=1`}
+                                        className={`button-small ${currentSourceNum === 1 ? 'active' : ''}`}
+                                        style={{ flex: 1, textAlign: "center" }}
+                                    >
+                                        Server 1
+                                    </Link>
+                                    <Link
+                                        href={`/phim/${slug}?source=2`}
+                                        className={`button-small ${currentSourceNum === 2 ? 'active' : ''}`}
+                                        style={{ flex: 1, textAlign: "center" }}
+                                    >
+                                        Server 2
+                                    </Link>
+                                </div>
+                                <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginTop: "0.8rem" }}>
+                                    * Nếu một nguồn bị lỗi hoặc chậm, bạn có thể thử nguồn còn lại.
+                                </p>
+                            </div>
+                        )}
+
                         {/* Servers Section */}
                         {servers.length > 1 && (
-                            <div className="glass" style={{ padding: "1.5rem", marginBottom: "1.5rem" }}>
+                            <div className="glass" style={{ padding: "1.5rem" }}>
                                 <h3 style={{ marginBottom: "1rem", fontSize: "1.1rem" }}>Chọn Server</h3>
-                                <div className="flex gap-2">
+                                <div className="flex gap-2 flex-wrap">
                                     {servers.map((s, idx) => (
                                         <Link
                                             key={s.server_name}
-                                            href={`/phim/${slug}?server=${idx}`}
+                                            href={`/phim/${slug}?source=${currentSourceNum}&server=${idx}`}
                                             className={`button-small ${idx === currentServerIdx ? 'active' : ''}`}
                                         >
                                             {s.server_name}
@@ -132,7 +197,7 @@ export default async function MovieDetailPage({ params, searchParams }: Props) {
                                 {currentServer.items.map((ep) => (
                                     <Link
                                         key={ep.slug}
-                                        href={`/phim/${slug}?server=${currentServerIdx}&episode=${ep.slug}`}
+                                        href={`/phim/${slug}?source=${currentSourceNum}&server=${currentServerIdx}&episode=${ep.slug}`}
                                         className={`episode-item ${ep.slug === currentEpisode.slug ? 'active' : ''}`}
                                     >
                                         {ep.name}
@@ -204,10 +269,10 @@ export default async function MovieDetailPage({ params, searchParams }: Props) {
             </div>
         );
     } catch (error) {
-        console.error(error);
+        console.error("Error in MovieDetailPage:", error);
         return (
             <div className="container" style={{ padding: "4rem 0", textAlign: "center" }}>
-                <h2 style={{ color: "#ff4444" }}>Phim không tồn tại hoặc đã bị gỡ bỏ</h2>
+                <h2 style={{ color: "#ff4444" }}>Đã xảy ra lỗi khi tải dữ liệu phim</h2>
                 <Link href="/" style={{ color: "var(--primary)", marginTop: "1rem", display: "inline-block" }}>Về trang chủ</Link>
             </div>
         );
