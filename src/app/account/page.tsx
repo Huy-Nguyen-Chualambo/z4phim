@@ -1,7 +1,24 @@
 import Link from "next/link";
-import type { SavedMovie, WatchHistory } from "@prisma/client";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+
+type SavedMovieItem = {
+  id: string;
+  movieSlug: string;
+  movieName: string;
+  thumbUrl: string | null;
+  posterUrl: string | null;
+};
+
+type WatchHistoryItem = {
+  id: string;
+  movieSlug: string;
+  movieName: string;
+  thumbUrl: string | null;
+  posterUrl: string | null;
+  lastEpisodeSlug: string | null;
+  lastEpisodeName: string | null;
+};
 
 export default async function AccountPage() {
   const session = await auth();
@@ -20,7 +37,7 @@ export default async function AccountPage() {
     );
   }
 
-  const [savedMovies, history]: [SavedMovie[], WatchHistory[]] = await Promise.all([
+  const [savedMovies, history]: [SavedMovieItem[], WatchHistoryItem[]] = await Promise.all([
     prisma.savedMovie.findMany({
       where: { userId: session.user.id },
       orderBy: { updatedAt: "desc" },
