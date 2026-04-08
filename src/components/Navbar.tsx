@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { searchMovies } from "@/lib/api";
 import { MovieListItem } from "@/lib/types";
+import { signOut, useSession } from "next-auth/react";
 
 export default function Navbar() {
     const [keyword, setKeyword] = useState("");
@@ -12,6 +13,7 @@ export default function Navbar() {
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const { data: session, status } = useSession();
     const router = useRouter();
     const searchRef = useRef<HTMLDivElement>(null);
     const mobileSearchRef = useRef<HTMLDivElement>(null);
@@ -130,6 +132,24 @@ export default function Navbar() {
                         )}
                     </div>
 
+                    {status === "authenticated" ? (
+                        <div className="flex items-center gap-2 nav-auth-group">
+                            <Link href="/account" className="nav-auth-btn nav-auth-btn--ghost">Tài khoản</Link>
+                            <button
+                                type="button"
+                                className="nav-auth-btn nav-auth-btn--danger"
+                                onClick={() => signOut({ callbackUrl: "/" })}
+                            >
+                                Đăng xuất
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-2 nav-auth-group">
+                            <Link href="/login" className="nav-auth-btn nav-auth-btn--ghost">Đăng nhập</Link>
+                            <Link href="/register" className="nav-auth-btn nav-auth-btn--solid">Đăng ký</Link>
+                        </div>
+                    )}
+
                     <button className="mobile-menu-btn" onClick={toggleMenu} aria-label="Toggle menu">
                         <div className={`hamburger ${isMenuOpen ? 'open' : ''}`}>
                             <span></span>
@@ -183,6 +203,26 @@ export default function Navbar() {
                         <Link href="/danh-sach/phim-bo" onClick={() => setIsMenuOpen(false)}>Phim bộ</Link>
                         <Link href="/danh-sach/phim-le" onClick={() => setIsMenuOpen(false)}>Phim lẻ</Link>
                         <Link href="/danh-sach/phim-moi" onClick={() => setIsMenuOpen(false)}>Phim mới</Link>
+                        {status === "authenticated" ? (
+                            <>
+                                <Link href="/account" onClick={() => setIsMenuOpen(false)}>Tài khoản ({session?.user?.email})</Link>
+                                <button
+                                    type="button"
+                                    className="mobile-auth-btn"
+                                    onClick={() => {
+                                        setIsMenuOpen(false);
+                                        signOut({ callbackUrl: "/" });
+                                    }}
+                                >
+                                    Đăng xuất
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <Link href="/login" onClick={() => setIsMenuOpen(false)}>Đăng nhập</Link>
+                                <Link href="/register" onClick={() => setIsMenuOpen(false)}>Đăng ký</Link>
+                            </>
+                        )}
                     </nav>
                 </div>
             </div>

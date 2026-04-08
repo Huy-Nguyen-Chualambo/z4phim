@@ -19,9 +19,20 @@ export default async function SearchPage({ searchParams }: Props) {
     }
 
     try {
-        const data = await searchMovies(keyword);
-        const movies = data.items;
-        const totalItems = data.paginate.total_items;
+        const firstPageData = await searchMovies(keyword, 1);
+        const totalItems = firstPageData.paginate.total_items;
+        const totalPages = firstPageData.paginate.total_page;
+
+        const otherPages = totalPages > 1
+            ? await Promise.all(
+                Array.from({ length: totalPages - 1 }, (_, i) => searchMovies(keyword, i + 2))
+            )
+            : [];
+
+        const movies = [
+            ...firstPageData.items,
+            ...otherPages.flatMap((page) => page.items),
+        ];
 
         return (
             <div className="container" style={{ paddingTop: "2.5rem" }}>

@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  name         String?
+  passwordHash String
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  savedMovies  SavedMovie[]
+  watchHistory WatchHistory[]
+}
+
+model SavedMovie {
+  id         String   @id @default(cuid())
+  userId     String
+  movieSlug  String
+  movieName  String
+  thumbUrl   String?
+  posterUrl  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, movieSlug])
+  @@index([userId, updatedAt])
+}
+
+model WatchHistory {
+  id               String   @id @default(cuid())
+  userId           String
+  movieSlug        String
+  movieName        String
+  thumbUrl         String?
+  posterUrl        String?
+  lastEpisodeSlug  String?
+  lastEpisodeName  String?
+  lastWatchedAt    DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, movieSlug])
+  @@index([userId, lastWatchedAt])
+}

@@ -3,6 +3,10 @@ import { getPhimApiMovieDetail, mapPhimApiToCommonDetail } from "@/lib/phimapi";
 import { Metadata } from "next";
 import Link from "next/link";
 import { MovieDetailResponse } from "@/lib/types";
+import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
+import SaveButton from "@/components/SaveButton";
+import WatchTracker from "@/components/WatchTracker";
 
 interface Props {
     params: Promise<{ slug: string }>;
@@ -35,6 +39,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function MovieDetailPage({ params, searchParams }: Props) {
     const { slug } = await params;
     const { server: serverIdx = "0", episode: epSlug, source: sourceQuery } = await searchParams;
+    const session = await auth();
 
     try {
         // Fetch from both sources
@@ -94,8 +99,28 @@ export default async function MovieDetailPage({ params, searchParams }: Props) {
             ? (currentServer.items.find(item => item.slug === epSlug) || currentServer.items[0])
             : currentServer.items[0];
 
+        const initialSaved = session?.user?.id
+            ? !!(await prisma.savedMovie.findUnique({
+                where: {
+                    userId_movieSlug: {
+                        userId: session.user.id,
+                        movieSlug: movie.slug,
+                    },
+                },
+                select: { id: true },
+            }))
+            : false;
+
         return (
             <div className="container" style={{ padding: "2rem 1rem" }}>
+                <WatchTracker
+                    movieSlug={movie.slug}
+                    movieName={movie.name}
+                    thumbUrl={movie.thumb_url}
+                    posterUrl={movie.poster_url}
+                    lastEpisodeSlug={currentEpisode.slug}
+                    lastEpisodeName={currentEpisode.name}
+                />
                 {/* Player Section */}
                 <div className="glass fade-in" style={{ width: "100%", aspectRatio: "16/9", overflow: "hidden", marginBottom: "2rem", boxShadow: "0 20px 40px rgba(0,0,0,0.5)" }}>
                     <iframe
@@ -115,6 +140,15 @@ export default async function MovieDetailPage({ params, searchParams }: Props) {
                             <h1 style={{ fontSize: "2.5rem", fontWeight: "800", marginBottom: "0.5rem", background: "linear-gradient(to right, #fff, #aaa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
                                 {movie.name}
                             </h1>
+                            <div style={{ marginBottom: "1rem" }}>
+                                <SaveButton
+                                    movieSlug={movie.slug}
+                                    movieName={movie.name}
+                                    thumbUrl={movie.thumb_url}
+                                    posterUrl={movie.poster_url}
+                                    initialSaved={initialSaved}
+                                />
+                            </div>
                             <p style={{ color: "var(--accent)", fontSize: "1.2rem", fontWeight: "500", marginBottom: "1.5rem" }}>
                                 {movie.original_name}
                             </p>

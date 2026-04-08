@@ -54,8 +54,8 @@ export async function getMoviesByYear(slug: string, page: number = 1): Promise<M
     return res.json();
 }
 
-export async function searchMovies(keyword: string): Promise<MovieListResponse> {
-    const res = await fetch(`${API_BASE_URL}/films/search?keyword=${keyword}`);
+export async function searchMovies(keyword: string, page: number = 1): Promise<MovieListResponse> {
+    const res = await fetch(`${API_BASE_URL}/films/search?keyword=${encodeURIComponent(keyword)}&page=${page}`);
     if (!res.ok) throw new Error("Failed to search movies");
     return res.json();
 }
