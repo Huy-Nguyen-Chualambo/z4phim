@@ -30,6 +30,40 @@ export default function Footer() {
                         </ul>
                     </div>
                 </div>
+
+                <div
+                    className="glass"
+                    style={{
+                        marginTop: "2rem",
+                        padding: "1rem 1.2rem",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        gap: "1rem",
+                        flexWrap: "wrap"
+                    }}
+                >
+                    <div>
+                        <p style={{ fontWeight: 700, marginBottom: "0.2rem" }}>Bạn thấy Z4PHIM thế nào?</p>
+                        <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>Góp ý nhanh để mình cải thiện trải nghiệm xem phim tốt hơn.</p>
+                    </div>
+                    <a
+                        href="https://forms.gle/b3asBfBhmpZrn27x5"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                            padding: "0.6rem 1rem",
+                            borderRadius: "999px",
+                            background: "linear-gradient(135deg, #0070f3, #00a8ff)",
+                            color: "#fff",
+                            fontWeight: 700,
+                            whiteSpace: "nowrap"
+                        }}
+                    >
+                        Đánh giá & góp ý
+                    </a>
+                </div>
+
                 <div style={{ marginTop: "3rem", paddingTop: "2rem", borderTop: "1px solid var(--card-border)", textAlign: "center", color: "var(--text-muted)", fontSize: "0.85rem" }}>
                     &copy; {new Date().getFullYear()} Z4PHIM. All rights reserved.
                 </div>
