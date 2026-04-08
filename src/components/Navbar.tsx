@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { searchMovies } from "@/lib/api";
+import { smartSearchMovies } from "@/lib/api";
 import { MovieListItem } from "@/lib/types";
 import { signOut, useSession } from "next-auth/react";
 
@@ -24,9 +24,8 @@ export default function Navbar() {
             if (keyword.trim().length >= 2) {
                 setIsLoading(true);
                 try {
-                    const data = await searchMovies(keyword.trim());
-                    // Limit to top 6 suggestions
-                    setSuggestions(data.items.slice(0, 6));
+                    const result = await smartSearchMovies(keyword.trim(), { limit: 6 });
+                    setSuggestions(result.items);
                     setShowSuggestions(true);
                 } catch (error) {
                     console.error("Error fetching suggestions:", error);

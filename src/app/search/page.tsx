@@ -1,4 +1,4 @@
-import { searchMovies, getMovies } from "@/lib/api";
+import { smartSearchMovies, getMovies } from "@/lib/api";
 import MovieCard from "@/components/MovieCard";
 
 interface Props {
@@ -19,20 +19,9 @@ export default async function SearchPage({ searchParams }: Props) {
     }
 
     try {
-        const firstPageData = await searchMovies(keyword, 1);
-        const totalItems = firstPageData.paginate.total_items;
-        const totalPages = firstPageData.paginate.total_page;
-
-        const otherPages = totalPages > 1
-            ? await Promise.all(
-                Array.from({ length: totalPages - 1 }, (_, i) => searchMovies(keyword, i + 2))
-            )
-            : [];
-
-        const movies = [
-            ...firstPageData.items,
-            ...otherPages.flatMap((page) => page.items),
-        ];
+        const result = await smartSearchMovies(keyword, { fetchAllPages: true });
+        const movies = result.items;
+        const totalItems = result.totalItems;
 
         return (
             <div className="container" style={{ paddingTop: "2.5rem" }}>
