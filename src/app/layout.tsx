@@ -11,6 +11,11 @@ export const metadata: Metadata = {
   title: "Z4PHIM - Xem Phim Trực Tuyến Miễn Phí",
   description: "Z4PHIM là website xem phim trực tuyến miễn phí, cập nhật nhanh nhất các bộ phim bộ, phim lẻ, phim hành động, hoạt hình hấp dẫn.",
   keywords: "xem phim, phim moi, phim le, phim bo, phim hay, z4phim",
+  icons: {
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
   openGraph: {
     title: "Z4PHIM - Xem Phim Trực Tuyến Miễn Phí",
     description: "Cập nhật phim mới mỗi ngày tại Z4PHIM",
