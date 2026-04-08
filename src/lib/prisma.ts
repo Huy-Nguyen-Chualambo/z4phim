@@ -18,7 +18,7 @@ function normalizeEnvUrl(value?: string): string | undefined {
 
 const directUrl = normalizeEnvUrl(process.env.DIRECT_URL);
 const databaseUrl = normalizeEnvUrl(process.env.DATABASE_URL);
-const connectionString = directUrl || databaseUrl;
+const connectionString = databaseUrl || directUrl;
 
 if (!connectionString) {
   throw new Error("DATABASE_URL or DIRECT_URL is not configured.");
