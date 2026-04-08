@@ -22,6 +22,7 @@ export default async function SearchPage({ searchParams }: Props) {
         const result = await smartSearchMovies(keyword, { fetchAllPages: true });
         const movies = result.items;
         const totalItems = result.totalItems;
+        const tokenBreakdown = result.tokenBreakdown;
 
         return (
             <div className="container" style={{ paddingTop: "2.5rem" }}>
@@ -30,6 +31,25 @@ export default async function SearchPage({ searchParams }: Props) {
                     <p style={{ color: "var(--text-muted)", fontSize: "0.95rem" }}>
                         Tìm thấy <strong>{totalItems}</strong> phim phù hợp.
                     </p>
+                    {tokenBreakdown.length > 0 && (
+                        <div style={{ marginTop: "0.8rem", display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                            {tokenBreakdown.map((tokenInfo) => (
+                                <span
+                                    key={tokenInfo.token}
+                                    style={{
+                                        padding: "0.35rem 0.6rem",
+                                        borderRadius: "999px",
+                                        background: "rgba(255,255,255,0.08)",
+                                        border: "1px solid var(--card-border)",
+                                        fontSize: "0.8rem",
+                                        color: "var(--text-muted)",
+                                    }}
+                                >
+                                    {tokenInfo.token}: {tokenInfo.matches} phim
+                                </span>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {movies.length > 0 ? (

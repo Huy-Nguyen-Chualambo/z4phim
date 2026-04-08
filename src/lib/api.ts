@@ -129,6 +129,7 @@ export interface SmartSearchOptions {
 export interface SmartSearchResult {
     items: MovieListItem[];
     totalItems: number;
+    tokenBreakdown: Array<{ token: string; matches: number }>;
 }
 
 export async function smartSearchMovies(
@@ -137,12 +138,12 @@ export async function smartSearchMovies(
 ): Promise<SmartSearchResult> {
     const trimmedKeyword = keyword.trim();
     if (!trimmedKeyword) {
-        return { items: [], totalItems: 0 };
+        return { items: [], totalItems: 0, tokenBreakdown: [] };
     }
 
     const { fetchAllPages = false, limit } = options;
     const normalizedKeyword = normalizeText(trimmedKeyword);
-    const tokens = normalizedKeyword.split(" ").filter(Boolean);
+    const tokens = normalizedKeyword.split(" ").filter((token) => token.length >= 2);
 
     const firstPageData = await searchMovies(trimmedKeyword, 1);
     let candidates = [...firstPageData.items];
@@ -162,16 +163,32 @@ export async function smartSearchMovies(
         }
     }
 
+    // Token-by-token scan: quet tung tu trong tu khoa de lay tap phim rong hon.
+    if (tokens.length > 1) {
+        const tokenData = await Promise.all(tokens.map((token) => searchMovies(token, 1)));
+        candidates = candidates.concat(tokenData.flatMap((page) => page.items));
+    }
+
     const ranked = dedupeMovies(candidates)
         .map((movie) => ({ movie, score: scoreMovie(movie, normalizedKeyword, tokens) }))
         .filter((entry) => entry.score > 0)
         .sort((a, b) => b.score - a.score)
         .map((entry) => entry.movie);
 
+    const tokenBreakdown = tokens.map((token) => {
+        const matches = ranked.filter((movie) => {
+            const haystack = normalizeText(`${movie.name} ${movie.original_name}`);
+            return haystack.includes(token);
+        }).length;
+
+        return { token, matches };
+    });
+
     const finalItems = typeof limit === "number" ? ranked.slice(0, limit) : ranked;
 
     return {
         items: finalItems,
         totalItems: ranked.length,
+        tokenBreakdown,
     };
 }
