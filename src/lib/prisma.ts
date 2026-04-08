@@ -4,10 +4,24 @@ import { Pool } from "pg";
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
-const connectionString = process.env.DATABASE_URL;
+function normalizeEnvUrl(value?: string): string | undefined {
+  if (!value) return undefined;
+  const trimmed = value.trim();
+  if (
+    (trimmed.startsWith("\"") && trimmed.endsWith("\"")) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    return trimmed.slice(1, -1).trim();
+  }
+  return trimmed;
+}
+
+const directUrl = normalizeEnvUrl(process.env.DIRECT_URL);
+const databaseUrl = normalizeEnvUrl(process.env.DATABASE_URL);
+const connectionString = directUrl || databaseUrl;
 
 if (!connectionString) {
-  throw new Error("DATABASE_URL is not configured. Please set it in .env.local.");
+  throw new Error("DATABASE_URL or DIRECT_URL is not configured.");
 }
 
 const allowSelfSignedCert = process.env.PGSSL_ALLOW_SELF_SIGNED === "true";

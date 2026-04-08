@@ -34,6 +34,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("Register API error:", error);
+
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.toLowerCase().includes("tenant or user not found")) {
+      return NextResponse.json(
+        { error: "Cau hinh ket noi database chua dung (Tenant/User Supabase)." },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json({ error: "Không thể tạo tài khoản." }, { status: 500 });
   }
 }
