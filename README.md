@@ -1,40 +1,40 @@
 # Z4PHIM
 
-Nền tảng xem phim xây dựng bằng Next.js App Router, tập trung vào trải nghiệm duyệt phim nhanh, tìm kiếm thông minh, theo dõi lịch sử xem và lưu phim theo tài khoản.
+A movie discovery and streaming web app built with Next.js App Router, focused on fast browsing, smart search, personalized watch activity, and account-based saved lists.
 
 ## Why This Project Stands Out
 
-- Product mindset rõ ràng: không chỉ render danh sách phim, mà có luồng người dùng hoàn chỉnh (đăng ký, đăng nhập, lưu phim, lịch sử xem, trang tài khoản).
-- Architecture thực tế: tách rõ UI, API route, service layer và data layer.
-- Data fetching hiệu năng: SSR + cache với revalidate, fallback đa nguồn cho trang chi tiết phim.
-- Search nâng cấp: có smart ranking, fallback query, token scan, dedupe và scoring.
+- Product-oriented thinking: this is a complete user flow, not just a movie list UI (register, login, save movies, watch history, account page).
+- Practical architecture: clear separation between UI, API routes, service layer, and data layer.
+- Performance-aware fetching: SSR and cache revalidation, plus multi-source fallback on movie detail pages.
+- Better search quality: ranking, fallback queries, token scan, deduplication, and scoring.
 
 ## Core Features
 
-- Trang chủ nhiều section động: phim hot, đề cử, theo thể loại, quốc gia, năm phát hành.
-- Chi tiết phim có player + chọn nguồn + chọn server + chọn tập.
-- Tìm kiếm gợi ý realtime (debounce) + trang kết quả.
-- Đăng ký/đăng nhập bằng email-password (NextAuth Credentials).
-- Cá nhân hóa:
-	- Lưu phim xem sau.
-	- Ghi nhận lịch sử xem gần nhất.
-	- Trang account tổng hợp dữ liệu theo người dùng.
-- API nội bộ chuẩn REST trong App Router.
+- Dynamic homepage sections: trending, featured picks, genres, countries, and release years.
+- Movie detail experience with player, source switch, server switch, and episode selection.
+- Realtime search suggestions (debounced) and dedicated search results page.
+- Email/password authentication with NextAuth Credentials.
+- Personalization:
+	- Save movies for later.
+	- Track recent watch history.
+	- Account page with user-specific saved and history data.
+- Internal REST-style APIs implemented with App Router route handlers.
 
 ## Tech Stack
 
 - Frontend: Next.js 16, React 19, TypeScript, App Router.
 - Authentication: NextAuth (Credentials Provider).
-- Database: PostgreSQL + Prisma ORM.
-- Security: bcryptjs để hash mật khẩu.
-- Styling: CSS modules + global styles.
+- Database: PostgreSQL with Prisma ORM.
+- Security: bcryptjs for password hashing.
+- Styling: global CSS and component-level styling.
 
 ## System Design (High Level)
 
-1. UI layer gọi các hàm trong lib để lấy dữ liệu phim.
-2. Lib layer gọi external movie APIs và chuẩn hóa dữ liệu về cùng một shape.
-3. App Router API xử lý nghiệp vụ user (register, saved, history).
-4. Prisma truy cập PostgreSQL cho dữ liệu tài khoản và hành vi xem phim.
+1. The UI layer calls service functions in the lib folder.
+2. The service layer fetches external movie APIs and normalizes payloads.
+3. App Router API routes handle user flows (register, saved list, watch history).
+4. Prisma persists account and watch behavior data to PostgreSQL.
 
 ## Project Structure
 
@@ -69,74 +69,74 @@ npm install
 
 ### 2) Configure environment variables
 
-Tạo file .env với các biến cơ bản sau:
+Create a .env file with the following values:
 
 ```bash
 DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DB?sslmode=require"
-# Hoặc DIRECT_URL nếu bạn tách riêng direct connection
+# Optional: use DIRECT_URL if you keep a separate direct connection string
 DIRECT_URL="postgresql://USER:PASSWORD@HOST:PORT/DB?sslmode=require"
 
-# Cho trường hợp cert self-signed ở môi trường dev
+# Useful for local development with self-signed certificates
 PGSSL_ALLOW_SELF_SIGNED="false"
 
 NEXTAUTH_SECRET="your-super-secret"
 NEXTAUTH_URL="http://localhost:3000"
 
-# External movie API
+# External movie APIs
 NEXT_PUBLIC_API_URL="https://your-primary-movie-api"
 NEXT_PUBLIC_PHIMAPI_URL="https://your-secondary-movie-api"
 NEXT_PUBLIC_PHIMAPI_IMAGE_PROXY=""
 ```
 
-### 3) Prepare database
+### 3) Prepare the database
 
 ```bash
 npx prisma generate
 npx prisma db push
 ```
 
-### 4) Run development server
+### 4) Run the development server
 
 ```bash
 npm run dev
 ```
 
-Truy cập: http://localhost:3000
+Open http://localhost:3000
 
 ## Available Scripts
 
-- npm run dev: Chạy local development.
-- npm run build: Build production.
-- npm run start: Chạy bản build production.
-- npm run lint: Kiểm tra lint.
+- npm run dev: start local development.
+- npm run build: create production build.
+- npm run start: run the production build.
+- npm run lint: run lint checks.
 
-## API Surface (Internal)
+## Internal API Surface
 
-- POST /api/register: tạo tài khoản mới.
-- GET/POST/DELETE /api/saved: lấy, thêm, xóa phim đã lưu.
-- GET/POST /api/history: lấy và cập nhật lịch sử xem.
-- GET/POST /api/auth/[...nextauth]: authentication handler.
+- POST /api/register: create a new account.
+- GET/POST/DELETE /api/saved: read, add, and remove saved movies.
+- GET/POST /api/history: read and update watch history.
+- GET/POST /api/auth/[...nextauth]: NextAuth handler.
 
 ## Data Source Note
 
-Dự án sử dụng dữ liệu phim từ các nguồn API công khai bên thứ ba để phục vụ mục đích học tập, thử nghiệm kỹ thuật và xây dựng portfolio.
+This project uses publicly accessible third-party movie APIs for learning, technical experimentation, and portfolio purposes.
 
-- Không lưu trữ lại nội dung media trên server của dự án.
-- Được thiết kế theo hướng dễ thay thế data provider, nên có thể chuyển sang nguồn chính thức khi triển khai production.
+- The app does not host or store media content on its own server.
+- The architecture is provider-agnostic, so official licensed providers can be swapped in for production use.
 
-## What I Focused On As A Developer
+## Engineering Focus
 
-- Viết code theo hướng scale được, tách concern rõ ràng.
-- Cân bằng DX và UX: dễ maintain nhưng vẫn mượt cho người dùng cuối.
-- Ưu tiên khả năng mở rộng: có thể thêm watchlist nâng cao, recommendation, analytics, hoặc role admin.
+- Build with maintainability and scalability in mind.
+- Balance developer experience and user experience.
+- Keep extension paths open for recommendations, analytics, admin tools, and richer personalization.
 
 ## Roadmap
 
-- Tối ưu SEO sâu hơn cho tất cả trang động.
-- Thêm test cho API routes và service layer.
-- Thêm observability (logging + metrics) cho production readiness.
-- Bổ sung CI pipeline và auto deploy.
+- Improve SEO coverage for dynamic routes.
+- Add test coverage for API routes and service logic.
+- Add observability (structured logs and metrics) for production readiness.
+- Add CI pipeline and automated deployment.
 
 ## License
 
-MIT (hoặc cập nhật theo nhu cầu của bạn).
+MIT (or update to your preferred license).
