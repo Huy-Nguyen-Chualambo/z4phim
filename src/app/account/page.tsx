@@ -37,7 +37,7 @@ export default async function AccountPage() {
     );
   }
 
-  const [savedMovies, history]: [SavedMovieItem[], WatchHistoryItem[]] = await Promise.all([
+  const [savedMovies, allHistory] = await Promise.all([
     prisma.savedMovie.findMany({
       where: { userId: session.user.id },
       orderBy: { updatedAt: "desc" },
@@ -46,9 +46,20 @@ export default async function AccountPage() {
     prisma.watchHistory.findMany({
       where: { userId: session.user.id },
       orderBy: { lastWatchedAt: "desc" },
-      take: 5,
     }),
   ]);
+
+  const history = allHistory.slice(0, 5) as WatchHistoryItem[];
+  const historyMap = new Map(allHistory.map(h => [h.movieSlug, h]));
+
+  const savedMoviesWithHistory = savedMovies.map(item => {
+    const hist = historyMap.get(item.movieSlug);
+    return {
+      ...item,
+      lastEpisodeSlug: hist?.lastEpisodeSlug || null,
+      lastEpisodeName: hist?.lastEpisodeName || null,
+    };
+  });
 
   return (
     <div className="container account-page-shell">
@@ -88,12 +99,16 @@ export default async function AccountPage() {
 
       <section className="glass account-panel">
         <h2 className="account-section-title">Phim đã lưu</h2>
-        {savedMovies.length === 0 ? (
+        {savedMoviesWithHistory.length === 0 ? (
           <p className="account-empty">Bạn chưa lưu phim nào.</p>
         ) : (
           <div className="account-movie-list">
-            {savedMovies.map((item) => (
-              <Link key={item.id} href={`/phim/${item.movieSlug}`} className="account-movie-card">
+            {savedMoviesWithHistory.map((item) => (
+              <Link
+                key={item.id}
+                href={`/phim/${item.movieSlug}${item.lastEpisodeSlug ? `?episode=${item.lastEpisodeSlug}` : ""}`}
+                className="account-movie-card"
+              >
                 <img
                   src={item.thumbUrl || item.posterUrl || "https://placehold.co/140x200?text=No+Image"}
                   alt={item.movieName}
@@ -101,7 +116,9 @@ export default async function AccountPage() {
                 />
                 <div className="account-movie-info">
                   <h3>{item.movieName}</h3>
-                  <p>Đã lưu để xem sau</p>
+                  <p>
+                    {item.lastEpisodeName ? `Tập gần nhất: ${item.lastEpisodeName}` : "Chưa xem tập nào / Phim lẻ"}
+                  </p>
                 </div>
               </Link>
             ))}

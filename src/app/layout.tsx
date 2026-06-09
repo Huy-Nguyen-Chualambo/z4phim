@@ -29,8 +29,56 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi">
-      <body className={inter.className}>
+    <html lang="vi" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                function clean(node) {
+                  if (node.nodeType !== 1) return;
+                  if (node.hasAttribute('bis_skin_checked')) node.removeAttribute('bis_skin_checked');
+                  if (node.hasAttribute('bis_register')) node.removeAttribute('bis_register');
+                  for (let i = 0; i < node.attributes.length; i++) {
+                    const attr = node.attributes[i];
+                    if (attr && attr.name.startsWith('__processed_') && attr.name.endsWith('__')) {
+                      node.removeAttribute(attr.name);
+                      i--;
+                    }
+                  }
+                }
+                const observer = new MutationObserver((mutations) => {
+                  for (let i = 0; i < mutations.length; i++) {
+                    const mutation = mutations[i];
+                    if (mutation.type === 'attributes') {
+                      const name = mutation.attributeName;
+                      if (name === 'bis_skin_checked' || name === 'bis_register' || (name.startsWith('__processed_') && name.endsWith('__'))) {
+                        mutation.target.removeAttribute(name);
+                      }
+                    }
+                    for (let j = 0; j < mutation.addedNodes.length; j++) {
+                      const node = mutation.addedNodes[j];
+                      if (node.nodeType === 1) {
+                        clean(node);
+                        const descNodes = node.querySelectorAll('*');
+                        for (let k = 0; k < descNodes.length; k++) {
+                          clean(descNodes[k]);
+                        }
+                      }
+                    }
+                  }
+                });
+                observer.observe(document.documentElement, {
+                  attributes: true,
+                  childList: true,
+                  subtree: true
+                });
+              })();
+            `
+          }}
+        />
+      </head>
+      <body className={inter.className} suppressHydrationWarning>
         <AuthProvider>
           <Navbar />
           <main style={{ minHeight: "calc(100vh - 70px - 300px)" }}>
