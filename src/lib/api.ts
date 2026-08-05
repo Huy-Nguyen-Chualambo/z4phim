@@ -1,9 +1,25 @@
 import { MovieDetailResponse, MovieListItem, MovieListResponse } from "./types";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
+const DEFAULT_API_BASE_URL = "https://phim.nguonc.com/api";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.trim() || DEFAULT_API_BASE_URL;
+
+function buildApiUrl(path: string): string {
+    return `${API_BASE_URL.replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}`;
+}
+
+function mapCategorySlug(slug: string): string {
+    const categoryMap: Record<string, string> = {
+        "phim-moi": "phim-moi-cap-nhat",
+        "phim-dang-chieu": "dang-chieu",
+        "phim-bo": "phim-bo",
+        "phim-le": "phim-le",
+    };
+
+    return categoryMap[slug] || slug;
+}
 
 export async function getMovies(page: number = 1): Promise<MovieListResponse> {
-    const res = await fetch(`${API_BASE_URL}/films/phim-moi-cap-nhat?page=${page}`, {
+    const res = await fetch(buildApiUrl(`films/phim-moi-cap-nhat?page=${page}`), {
         next: { revalidate: 3600 }, // Cache for 1 hour
     });
     if (!res.ok) throw new Error("Failed to fetch movies");
@@ -11,9 +27,10 @@ export async function getMovies(page: number = 1): Promise<MovieListResponse> {
 }
 
 export async function getMoviesByCategory(slug: string, page: number = 1): Promise<MovieListResponse> {
-    const url = slug === "phim-moi"
-        ? `${API_BASE_URL}/films/phim-moi-cap-nhat?page=${page}`
-        : `${API_BASE_URL}/films/danh-sach/${slug}?page=${page}`;
+    const apiSlug = mapCategorySlug(slug);
+    const url = apiSlug === "phim-moi-cap-nhat"
+        ? buildApiUrl(`films/phim-moi-cap-nhat?page=${page}`)
+        : buildApiUrl(`films/danh-sach/${apiSlug}?page=${page}`);
 
     const res = await fetch(url, {
         next: { revalidate: 3600 },
@@ -23,7 +40,7 @@ export async function getMoviesByCategory(slug: string, page: number = 1): Promi
 }
 
 export async function getMovieDetail(slug: string): Promise<MovieDetailResponse> {
-    const res = await fetch(`${API_BASE_URL}/film/${slug}`, {
+    const res = await fetch(buildApiUrl(`film/${slug}`), {
         next: { revalidate: 3600 },
     });
     if (!res.ok) throw new Error("Failed to fetch movie detail");
@@ -31,7 +48,7 @@ export async function getMovieDetail(slug: string): Promise<MovieDetailResponse>
 }
 
 export async function getMoviesByGenre(slug: string, page: number = 1): Promise<MovieListResponse> {
-    const res = await fetch(`${API_BASE_URL}/films/the-loai/${slug}?page=${page}`, {
+    const res = await fetch(buildApiUrl(`films/the-loai/${slug}?page=${page}`), {
         next: { revalidate: 3600 },
     });
     if (!res.ok) throw new Error("Failed to fetch movies by genre");
@@ -39,7 +56,7 @@ export async function getMoviesByGenre(slug: string, page: number = 1): Promise<
 }
 
 export async function getMoviesByCountry(slug: string, page: number = 1): Promise<MovieListResponse> {
-    const res = await fetch(`${API_BASE_URL}/films/quoc-gia/${slug}?page=${page}`, {
+    const res = await fetch(buildApiUrl(`films/quoc-gia/${slug}?page=${page}`), {
         next: { revalidate: 3600 },
     });
     if (!res.ok) throw new Error("Failed to fetch movies by country");
@@ -47,7 +64,7 @@ export async function getMoviesByCountry(slug: string, page: number = 1): Promis
 }
 
 export async function getMoviesByYear(slug: string, page: number = 1): Promise<MovieListResponse> {
-    const res = await fetch(`${API_BASE_URL}/films/nam-phat-hanh/${slug}?page=${page}`, {
+    const res = await fetch(buildApiUrl(`films/nam-phat-hanh/${slug}?page=${page}`), {
         next: { revalidate: 3600 },
     });
     if (!res.ok) throw new Error("Failed to fetch movies by year");
@@ -55,7 +72,7 @@ export async function getMoviesByYear(slug: string, page: number = 1): Promise<M
 }
 
 export async function searchMovies(keyword: string, page: number = 1): Promise<MovieListResponse> {
-    const res = await fetch(`${API_BASE_URL}/films/search?keyword=${encodeURIComponent(keyword)}&page=${page}`);
+    const res = await fetch(buildApiUrl(`films/search?keyword=${encodeURIComponent(keyword)}&page=${page}`));
     if (!res.ok) throw new Error("Failed to search movies");
     return res.json();
 }

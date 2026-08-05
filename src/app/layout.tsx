@@ -1,11 +1,19 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Baloo_2, Nunito } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AuthProvider from "@/components/AuthProvider";
 
-const inter = Inter({ subsets: ["latin", "vietnamese"] });
+const baloo = Baloo_2({
+  subsets: ["latin", "vietnamese"],
+  variable: "--font-display",
+});
+
+const nunito = Nunito({
+  subsets: ["latin", "vietnamese"],
+  variable: "--font-body",
+});
 
 export const metadata: Metadata = {
   title: "Z4PHIM - Xem Phim Trực Tuyến Miễn Phí",
@@ -78,7 +86,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={inter.className} suppressHydrationWarning>
+      <body className={`${baloo.variable} ${nunito.variable}`} suppressHydrationWarning>
         <AuthProvider>
           <Navbar />
           <main style={{ minHeight: "calc(100vh - 70px - 300px)" }}>

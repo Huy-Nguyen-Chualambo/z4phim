@@ -83,8 +83,8 @@ NEXTAUTH_SECRET="your-super-secret"
 NEXTAUTH_URL="http://localhost:3000"
 
 # External movie APIs
-NEXT_PUBLIC_API_URL="https://your-primary-movie-api"
-NEXT_PUBLIC_PHIMAPI_URL="https://your-secondary-movie-api"
+NEXT_PUBLIC_API_URL="https://phim.nguonc.com/api"
+NEXT_PUBLIC_PHIMAPI_URL="https://phimapi.com"
 NEXT_PUBLIC_PHIMAPI_IMAGE_PROXY=""
 ```
 
